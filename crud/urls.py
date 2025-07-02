@@ -1,8 +1,9 @@
+from django.conf import settings  # Correct import here
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
-from django.conf import settings           # Correct import here
-from django.conf.urls.static import static
-from .views import index, getData, stocks, loginView, logoutView, register
+
+from .views import getData, index, loginView, logoutView, register, stocks
 
 urlpatterns = [
     path('', index, name='index'),
@@ -11,7 +12,7 @@ urlpatterns = [
     path('login/', loginView, name='login'),
     path('logout/', logoutView, name='logout'),
     path('register/', register, name='register'),
-    path('buy/<id:int>', index, name='buy'),
+    path('buy/<int:id>', index, name='buy'),
 ]
 
 # Serve media files during development
