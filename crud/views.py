@@ -1,0 +1,314 @@
+# import requests
+# from django.contrib.auth import authenticate, login, logout
+# from django.contrib.auth.decorators import login_required
+# from django.contrib.auth.models import User
+# from django.core.mail import send_mail
+# from django.http import JsonResponse
+# from django.shortcuts import get_object_or_404, redirect, render
+
+# from .models import Stock, UserStock
+
+# # Create your views here.
+
+# token = "65296f95ff2c90506f05875435311a8227a560db"
+
+# def getStocks(symbol , token) :
+#     headers = {
+#         'Content-Type': 'application/json'
+#     }
+#     ticker  = symbol
+#     #https://host/resrc/identifier
+#     metaUrl  =  f"https://api.tiingo.com/tiingo/daily/{ticker}?token={token}"
+#     priceUrl  = f"https://api.tiingo.com/tiingo/daily/{ticker}/prices?token={token}"
+#     metaData  =  requests.get(metaUrl , headers = headers).json()
+#     requestResponse = requests.get(priceUrl, headers=headers)
+#     print(requestResponse.json())
+#     latest_price =  requestResponse.json()[0]['close']
+#     stock  = Stock(ticker  =   metaData['ticker'] ,  name  = metaData['name'] ,  description =  metaData['description'], curr_price = latest_price  )
+#     stock.save()
+
+# def updateStock() :
+#     tickers = [
+#         "AAPL", "MSFT", "NVDA", "TSLA", "AMZN", "GOOGL", "META", "AMD", "NFLX", "INTC",
+#         "ADBE", "PDD", "COST", "AVGO", "QCOM", "PYPL", "CMCSA", "CSCO", "MARA", "RIVN"
+#     ]
+#     for i in tickers :
+#         getStocks(i , token)
+
+#     return JsonResponse({"status": "stocks updated"})
+
+
+
+# from django.contrib import messages
+# from django.contrib.auth import login
+# from django.contrib.auth.models import User
+# from django.shortcuts import redirect, render
+
+# from .models import UserInfo  # Make sure this import is correct
+
+
+# def home(request):
+#     return render(request, 'base.html')
+
+# @login_required
+# def index(request) :
+#     return render(request , 'templates\index.html')
+
+
+# def register(request):
+#     if request.method == 'POST':
+#         username = request.POST.get('username')
+#         password = request.POST.get('password')
+#         email = request.POST.get('email')
+
+
+#         panCard = request.POST.get('panCard')
+#         phoneNumber = request.POST.get('phoneNumber')
+#         profile_pic = request.FILES.get('profile_pic')
+#         panCard_Image = request.FILES.get('panCard_Image')
+
+#         if User.objects.filter(username=username).exists():
+#             messages.error(request, "Username already exists.")
+#             return render(request, 'register.html')
+
+
+#         user = User(username=username, email=email)
+#         user.set_password(password)
+#         user.save()
+
+
+#         user_info = UserInfo(
+#             user=user,
+#             panCard=panCard,
+#             phoneNumber=phoneNumber,
+#             profile_pic=profile_pic,
+#             panCard_Image=panCard_Image
+#         )
+#         user_info.save()
+
+#         login(request, user)
+#         return redirect('index')
+
+#     return render(request, 'register.html')
+
+
+# # make login logout
+
+# def loginView(request) :
+#     if request.method == 'POST' :
+#         username = request.POST.get('username')
+#         password = request.POST.get('password')
+#         user =  authenticate(username ,  password)
+#         if user  :
+#             login(request ,  user)
+#             return  redirect('index')
+
+#     return  render(request ,  'login.html')
+
+
+# def logout_view(request) :
+#     logout(request)
+
+# @login_required
+# def index(request) :
+#     user  =  request.user
+#     stocks = UserStock.objects.filter(user  = user)
+#     context =  {'data' :  stocks}
+#     return render(request ,  'index.html' ,  context)
+
+# @login_required
+# def market(request) :
+#     stocks  = Stock.objects.all()
+#     context =  {'data' :  stocks}
+#     return render(request ,  'index.html' ,  context)
+
+
+
+# @login_required
+# def buy(request ,  stock_id) :
+#     user  =  request.user
+#     stock  =  get_object_or_404(id  =  stock_id)
+#     purchaseQuantity = request.POST.get('quantity')
+#     userstock = UserStock.objects.filter(user  = user  ,  stock=stock)
+#     if userstock :
+#         userstock.buyPrice =  (userstock.buyPrice*userstock.buyQuantity + purchaseQuantity*stock.curr_price)/(purchaseQuantity + userstock.buyQuantity)
+#         userstock.buyQuantity +=purchaseQuantity
+#     else  :
+#         userstock = UserStock(user = user , stock  =  stock ,  buyQuantity  =  purchaseQuantity , buyPrice  = stock.curr_price )
+#         userstock.save()
+
+#     send_mail(subject="Buy Option executed successfully", message=f"your purchase of stock {stock.name} is successfull", from_email=None,
+#               recipient_list=[user.email], fail_silently=False)
+
+#     return redirect('index')
+
+# @login_required
+# def sell(request , id) :
+#     user  =  request.user
+#     stock  =  get_object_or_404(id  = id)
+#     sellQuantity  =  request.POST.get('quantity')
+#     userstock = UserStock.objects.filter(user=user, stock=stock)
+#     userstock.buyQuantity -= sellQuantity
+
+#     send_mail(subject="Sell  Option executed successfully", message=f"your Sale of stock {stock.name} is successfull", from_email=None,
+#               recipient_list=[user.email], fail_silently=False)
+
+#     return redirect('index')
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
+# # Create your views here.
+import requests
+
+from .models import Stocks,UserInfo
+
+@login_required
+def index(request) :
+    return render(request ,  'index.html')
+
+
+
+def getData(request) :
+    nasdaq_tickers = [
+        "AAPL",  # Apple Inc.
+        "MSFT",  # Microsoft Corporation
+        "GOOGL",  # Alphabet Inc. (Class A)
+        "GOOG",  # Alphabet Inc. (Class C)
+        "AMZN",  # Amazon.com Inc.
+        "META",  # Meta Platforms Inc.
+        "NVDA",  # NVIDIA Corporation
+        "TSLA",  # Tesla Inc.
+        "PEP",  # PepsiCo Inc.
+        "INTC",  # Intel Corporation
+        "CSCO",  # Cisco Systems Inc.
+        "ADBE",  # Adobe Inc.
+        "CMCSA",  # Comcast Corporation
+        "AVGO",  # Broadcom Inc.
+        "COST",  # Costco Wholesale Corporation
+        "TMUS",  # T-Mobile US Inc.
+        "TXN",  # Texas Instruments Inc.
+        "AMGN",  # Amgen Inc.
+        "QCOM",  # Qualcomm Incorporated
+        "INTU",  # Intuit Inc.
+        "PYPL",  # PayPal Holdings Inc.
+        "BKNG",  # Booking Holdings Inc.
+        "GILD",  # Gilead Sciences Inc.
+        "SBUX",  # Starbucks Corporation
+        "MU",  # Micron Technology Inc.
+        "ADP",  # Automatic Data Processing Inc.
+        "MDLZ",  # Mondelez International Inc.
+        "ISRG",  # Intuitive Surgical Inc.
+        "ADI",  # Analog Devices Inc.
+        "MAR",  # Marriott International Inc.
+        "LRCX",  # Lam Research Corporation
+        "REGN",  # Regeneron Pharmaceuticals Inc.
+        "ATVI",  # Activision Blizzard Inc.
+        "ILMN",  # Illumina Inc.
+        "WDAY",  # Workday Inc.
+        "SNPS",  # Synopsys Inc.
+        "ASML",  # ASML Holding N.V.
+        "EBAY",  # eBay Inc.
+        "ROST",  # Ross Stores Inc.
+        "CTAS",  # Cintas Corporation
+        "BIIB",  # Biogen Inc.
+        "MELI",  # MercadoLibre Inc.
+        "ORLY",  # O'Reilly Automotive Inc.
+        "VRTX",  # Vertex Pharmaceuticals Inc.
+        "DLTR",  # Dollar Tree Inc.
+        "KHC",  # The Kraft Heinz Company
+        "EXC",  # Exelon Corporation
+        "FAST",  # Fastenal Company
+        "JD",  # JD.com Inc.
+        "CRWD"  # CrowdStrike Holdings Inc.
+    ]
+
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    token  =  "65296f95ff2c90506f05875435311a8227a560db"
+    def getStock(ticker):
+        url  = f"https://api.tiingo.com/tiingo/daily/{ticker}?token={token}"
+        priceurl  =  f"https://api.tiingo.com/tiingo/daily/{ticker}/prices?token={token}"
+        requestResponse = requests.get(url, headers=headers )
+        Metadata  = requestResponse.json()
+        print(Metadata)
+        priceData  = requests.get(priceurl , headers=headers)
+        print(priceData.json())
+        priceData =  priceData.json()[0]['close']
+
+        # insert into SQL
+        stock = Stocks(ticker  = Metadata['ticker']  , name  =  Metadata['name'] ,  description =  Metadata['description'] , curr_price  = priceData)
+        stock.save()
+
+    nasdaq_tickers =  nasdaq_tickers[11:30]
+    for i in nasdaq_tickers :
+        getStock(i)
+
+
+    return HttpResponse("Stock Data Downloaded")
+
+
+@login_required
+def stocks(request) :
+    stocks  = Stocks.objects.all()
+    context  =  {'data' :  stocks}
+    return render(request , 'market.html' ,  context)
+
+
+def loginView(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(username=username, password=password)
+        if user:
+            login(request, user)
+            return redirect('index')
+        else:
+            messages.error(request, "Invalid credentials")
+
+    return render(request, 'login.html')
+
+
+def logoutView(request) :
+    logout(request)
+    return redirect('login')
+
+
+def register(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        email = request.POST.get('email')
+
+
+        panCard = request.POST.get('panCard')
+        phoneNumber = request.POST.get('phoneNumber')
+        profile_pic = request.FILES.get('profile_pic')
+        panCard_Image = request.FILES.get('panCard_Image')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
+            return render(request, 'register.html')
+
+
+        user = User(username=username, email=email)
+        user.set_password(password)
+        user.save()
+
+
+        user_info = UserInfo(
+            user=user,
+            panCard=panCard,
+            phoneNumber=phoneNumber,
+            profile_pic=profile_pic,
+            panCard_Image=panCard_Image
+        )
+        user_info.save()
+
+        login(request, user)
+        return redirect('index')
+
+    return render(request, 'register.html')

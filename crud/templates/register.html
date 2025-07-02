@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Register | StockMarketPlace{% endblock %}
+
+{% block content %}
+<style>
+  body {
+    background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+    color: #fff;
+  }
+
+  .register-container {
+    background: #ffffff;
+    padding: 2rem 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    color: #000;
+  }
+
+  .form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(100, 255, 218, 0.25);
+    border-color: #64ffda;
+  }
+
+  .btn-primary {
+    background-color: #64ffda;
+    border: none;
+    color: #000;
+    font-weight: 600;
+    transition: background-color 0.3s ease-in-out;
+  }
+
+  .btn-primary:hover {
+    background-color: #52e0c4;
+  }
+
+  .title {
+    color: #0a192f;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  label {
+    font-weight: 500;
+  }
+
+  a {
+    color: #64ffda;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6 register-container">
+      <h2 class="text-center title">🚀 Create Your StockMarket Account</h2>
+
+      <form method="POST" enctype="multipart/form-data" action="{% url 'register' %}">
+        {% csrf_token %}
+
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+
+        <div class="mb-3">
+          <label for="username" class="form-label">Username</label>
+          <input type="text" name="username" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" name="email" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label">Confirm Password</label>
+          <input type="password" name="password2" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="panCard" class="form-label">PAN Card Number</label>
+          <input type="text" name="panCard" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="phoneNumber" class="form-label">Phone Number</label>
+          <input type="text" name="phoneNumber" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="profile_pic" class="form-label">Profile Picture</label>
+          <input type="file" name="profile_pic" class="form-control" accept="image/*">
+        </div>
+
+        <div class="mb-3">
+          <label for="panCard_Image" class="form-label">PAN Card Image</label>
+          <input type="file" name="panCard_Image" class="form-control" accept="image/*">
+        </div>
+
+        <div class="d-grid mt-4">
+          <button type="submit" class="btn btn-primary">Create Account</button>
+        </div>
+      </form>
+
+      <p class="text-center mt-3">
+        Already registered? <a href="{% url 'login' %}">Log in here</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
