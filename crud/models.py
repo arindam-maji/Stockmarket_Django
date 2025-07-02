@@ -19,6 +19,14 @@ class Stocks(models.Model) :
         return  self.name
 
 
+class Stocks(models.Model):
+    ticker   =  models.CharField(max_length=10)
+    name =  models.CharField(max_length=300)
+    description  =  models.CharField(max_length =5000)
+    curr_price =  models.FloatField()
+
+    def __str__(self):
+        return  self.name
 class UserStock(models.Model) :
     user =  models.ForeignKey(User ,  on_delete=models.CASCADE)
     stock  = models.ForeignKey(Stocks,  on_delete= models.CASCADE)
@@ -31,12 +39,3 @@ class UserStock(models.Model) :
 
 
 # Create your models here.
-
-class Stocks(models.Model):
-    ticker   =  models.CharField(max_length=10)
-    name =  models.CharField(max_length=300)
-    description  =  models.CharField(max_length =5000)
-    curr_price =  models.FloatField()
-
-    def __str__(self):
-        return  self.name
