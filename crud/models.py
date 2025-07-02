@@ -20,8 +20,8 @@ class Stocks(models.Model) :
 
 
 class UserStock(models.Model) :
-    user =  models.OneToOneField(User ,  on_delete=models.CASCADE)
-    stock  = models.OneToOneField(Stocks ,  on_delete= models.CASCADE)
+    user =  models.ForeignKey(User ,  on_delete=models.CASCADE)
+    stock  = models.ForeignKey(Stocks,  on_delete= models.CASCADE)
     buyPrice  =  models.FloatField()
     buyQuantity =  models.IntegerField()
     purchaseDate =  models.DateTimeField(auto_now_add=True)
