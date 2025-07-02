@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-ixs)^26#5_#lwu&-#k=j3&b0j)h_luc4z17bem0l-c&my17m8u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['stockmarket-django.onrender.com']
 
 
 # Application definition
