@@ -306,20 +306,48 @@ def register(request):
         return redirect('index')
 
     return render(request, 'register.html')
-
+from django.views.decorators.http import require_http_methods
 @login_required
-def buy(request ,  id) :
-    user  =  request.user
-    stock  =  get_object_or_404(id  =  id)
-    purchaseQuantity = request.POST.get('quantity')
-    userstock = UserStock.objects.filter(user  = user  ,  stock=stock)
-    if userstock :
-        userstock.buyPrice =  (userstock.buyPrice*userstock.buyQuantity + purchaseQuantity*stock.curr_price)/(purchaseQuantity + userstock.buyQuantity)
-        userstock.buyQuantity +=purchaseQuantity
-    else  :
-        userstock = UserStock(user = user , stock  =  stock ,  buyQuantity  =  purchaseQuantity , buyPrice  = stock.curr_price )
-        userstock.save()
+@require_http_methods(["POST"])
+def buy(request, id):
+    user = request.user
+    stock = get_object_or_404(Stocks, id=id)
 
-    send_mail(subject="Buy Option executed successfully", message=f"your purchase of stock {stock.name} is successfull", from_email=None,recipient_list=[user.email], fail_silently=False)
+    try:
+        purchase_quantity = int(request.POST.get('quantity'))
+        if purchase_quantity <= 0:
+            messages.error(request, "Quantity must be positive.")
+            return redirect('stocks')
 
-    return redirect('index')
+        user_stock, created = UserStock.objects.get_or_create(
+            user=user,
+            stock=stock,
+            defaults={
+                'buyQuantity': purchase_quantity,
+                'buyPrice': stock.curr_price
+            }
+        )
+
+        if not created:
+            total_quantity = user_stock.buyQuantity + purchase_quantity
+            user_stock.buyPrice = (
+                (user_stock.buyPrice * user_stock.buyQuantity) +
+                (stock.curr_price * purchase_quantity)
+            ) / total_quantity
+            user_stock.buyQuantity = total_quantity
+            user_stock.save()
+
+        send_mail(
+            subject="Buy Confirmation",
+            message=f"You bought {purchase_quantity} shares of {stock.name}.",
+            from_email=None,
+            recipient_list=[user.email],
+            fail_silently=True
+        )
+
+        messages.success(request, f"Successfully bought {purchase_quantity} shares of {stock.name}.")
+        return redirect('index')
+
+    except (ValueError, TypeError):
+        messages.error(request, "Invalid quantity.")
+        return redirect('stocks')

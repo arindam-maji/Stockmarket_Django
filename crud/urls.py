@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from .views import getData, index, loginView, logoutView, register, stocks
+from .views import getData, index, loginView, logoutView, register, stocks, buy
 
 urlpatterns = [
     path('', index, name='index'),
@@ -13,7 +13,7 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('logout/', logoutView, name='logout'),
     path('register/', register, name='register'),
-    path('buy/<int:id>', index, name='buy'),
+    path('buy/<int:id>', buy, name='buy'),
 ]
 
 # Serve media files during development
