@@ -1,12 +1,3 @@
-# import requests
-# from django.contrib.auth import authenticate, login, logout
-# from django.contrib.auth.decorators import login_required
-# from django.contrib.auth.models import User
-# from django.core.mail import send_mail
-# from django.http import JsonResponse
-# from django.shortcuts import get_object_or_404, redirect, render
-
-# from .models import Stock, UserStock
 
 # # Create your views here.
 
@@ -154,16 +145,19 @@
 #               recipient_list=[user.email], fail_silently=False)
 
 #     return redirect('index')
+
+# from .models import Stock, UserStock
+import requests
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-# # Create your views here.
-import requests
+from django.core.mail import send_mail
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import Stocks,UserInfo
+from .models import *
+
 
 @login_required
 def index(request) :
@@ -312,3 +306,20 @@ def register(request):
         return redirect('index')
 
     return render(request, 'register.html')
+
+@login_required
+def buy(request ,  id) :
+    user  =  request.user
+    stock  =  get_object_or_404(id  =  id)
+    purchaseQuantity = request.POST.get('quantity')
+    userstock = UserStock.objects.filter(user  = user  ,  stock=stock)
+    if userstock :
+        userstock.buyPrice =  (userstock.buyPrice*userstock.buyQuantity + purchaseQuantity*stock.curr_price)/(purchaseQuantity + userstock.buyQuantity)
+        userstock.buyQuantity +=purchaseQuantity
+    else  :
+        userstock = UserStock(user = user , stock  =  stock ,  buyQuantity  =  purchaseQuantity , buyPrice  = stock.curr_price )
+        userstock.save()
+
+    send_mail(subject="Buy Option executed successfully", message=f"your purchase of stock {stock.name} is successfull", from_email=None,recipient_list=[user.email], fail_silently=False)
+
+    return redirect('index')

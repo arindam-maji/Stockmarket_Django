@@ -11,6 +11,7 @@ urlpatterns = [
     path('login/', loginView, name='login'),
     path('logout/', logoutView, name='logout'),
     path('register/', register, name='register'),
+    path('buy/<id:int>', index, name='buy'),
 ]
 
 # Serve media files during development
