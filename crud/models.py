@@ -9,16 +9,6 @@ class UserInfo(models.Model) :
     profile_pic  =  models.ImageField('profile_pic/')
     panCard_Image =  models.ImageField('pancard/')
 
-class Stocks(models.Model) :
-    ticker = models.CharField(max_length=10 , primary_key=True)
-    name  =  models.CharField(max_length=200)
-    description  =  models.CharField(max_length=5000)
-    curr_price  =   models.FloatField()
-
-    def __str__(self):
-        return  self.name
-
-
 class Stocks(models.Model):
     ticker   =  models.CharField(max_length=10)
     name =  models.CharField(max_length=300)
