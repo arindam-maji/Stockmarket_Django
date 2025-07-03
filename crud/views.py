@@ -115,39 +115,6 @@
 #     return render(request ,  'index.html' ,  context)
 
 
-
-# @login_required
-# def buy(request ,  stock_id) :
-#     user  =  request.user
-#     stock  =  get_object_or_404(id  =  stock_id)
-#     purchaseQuantity = request.POST.get('quantity')
-#     userstock = UserStock.objects.filter(user  = user  ,  stock=stock)
-#     if userstock :
-#         userstock.buyPrice =  (userstock.buyPrice*userstock.buyQuantity + purchaseQuantity*stock.curr_price)/(purchaseQuantity + userstock.buyQuantity)
-#         userstock.buyQuantity +=purchaseQuantity
-#     else  :
-#         userstock = UserStock(user = user , stock  =  stock ,  buyQuantity  =  purchaseQuantity , buyPrice  = stock.curr_price )
-#         userstock.save()
-
-#     send_mail(subject="Buy Option executed successfully", message=f"your purchase of stock {stock.name} is successfull", from_email=None,
-#               recipient_list=[user.email], fail_silently=False)
-
-#     return redirect('index')
-
-# @login_required
-# def sell(request , id) :
-#     user  =  request.user
-#     stock  =  get_object_or_404(id  = id)
-#     sellQuantity  =  request.POST.get('quantity')
-#     userstock = UserStock.objects.filter(user=user, stock=stock)
-#     userstock.buyQuantity -= sellQuantity
-
-#     send_mail(subject="Sell  Option executed successfully", message=f"your Sale of stock {stock.name} is successfull", from_email=None,
-#               recipient_list=[user.email], fail_silently=False)
-
-#     return redirect('index')
-
-# from .models import Stock, UserStock
 import requests
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -308,6 +275,8 @@ def register(request):
 
     return render(request, 'register.html')
 from django.views.decorators.http import require_http_methods
+
+
 @login_required
 @require_http_methods(["POST"])
 def buy(request, id):
@@ -352,3 +321,40 @@ def buy(request, id):
     except (ValueError, TypeError):
         messages.error(request, "Invalid quantity.")
         return redirect('stocks')
+
+@login_required
+def sell(request, id):
+    if request.method == 'POST':
+        quantity = int(request.POST.get('quantity', 0))
+        stock = get_object_or_404(Stocks, id=id)
+
+        # Check if the user owns the stock
+        user_stock = UserStock.objects.filter(user=request.user, stock=stock).first()
+        if not user_stock or user_stock.buyQuantity < quantity:
+            messages.error(request, f"You don't have enough shares of {stock.name} to sell.")
+        else:
+            user_stock.buyQuantity -= quantity
+            if user_stock.buyQuantity == 0:
+                user_stock.delete()
+            else:
+                user_stock.save()
+            messages.success(request, f"📉 You sold {quantity} shares of {stock.name}.")
+
+    return redirect('index')
+
+@login_required
+
+def index(request):
+    user = request.user
+    user_stocks = UserStock.objects.filter(user=user).select_related('stock')
+
+    context = {
+        'user_stocks': user_stocks
+    }
+
+    return render(request, 'index.html', context)
+
+#1.make a view to get all userStock for the particular user
+#2.make a template to display cards and pass the context from view to tmplate
+#3.email notification on registration , sell and buy
+
