@@ -121,16 +121,38 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
+from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import *
+from .models import UserStock
 
 
 @login_required
-def index(request) :
-    return render(request ,  'index.html')
+def index(request):
+    user = request.user
+    user_stocks = UserStock.objects.select_related('stock').filter(user=user)
 
+    total_invested = 0
+    current_value = 0
+
+    for us in user_stocks:
+        invested = us.buyPrice * us.buyQuantity
+        total_invested += invested
+        current_value += us.total_value  # uses @property
+
+    # Prevent divide by zero
+    gains = ((current_value - total_invested) / total_invested) * 100 if total_invested else 0
+
+    context = {
+        'user_stocks': user_stocks,
+        'total_invested': total_invested,
+        'current_value': current_value,
+        'gains': gains
+    }
+
+    return render(request, 'index.html', context)
 
 
 def getData(request) :
@@ -214,25 +236,23 @@ def getData(request) :
 
 
 @login_required
-def stocks(request) :
-    stocks  = Stocks.objects.all()
-    context  =  {'data' :  stocks}
-    return render(request , 'market.html' ,  context)
+def stocks(request):
+    query = request.GET.get('q', '')
+    stocks_queryset = Stocks.objects.filter(name__icontains=query) | Stocks.objects.filter(ticker__icontains=query) if query else Stocks.objects.all()
 
+    paginator = Paginator(stocks_queryset, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
-def loginView(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(username=username, password=password)
-        if user:
-            login(request, user)
-            return redirect('index')
-        else:
-            messages.error(request, "Invalid credentials")
+    ticker_list = list(page_obj.object_list.values_list('ticker', flat=True))
 
-    return render(request, 'login.html')
+    context = {
+        'page_obj': page_obj,
+        'query': query,
+        'tickers': ticker_list  # Pass this to template
+    }
 
+    return render(request, 'market.html', context)
 
 def logoutView(request) :
     logout(request)
@@ -306,14 +326,14 @@ def buy(request, id):
             ) / total_quantity
             user_stock.buyQuantity = total_quantity
             user_stock.save()
-
+        #it is slowing down the buy process thats why we will use async
         send_mail(
             subject="Buy Confirmation",
             message=f"You bought {purchase_quantity} shares of {stock.name}.",
             from_email=None,
             recipient_list=[user.email],
             fail_silently=True
-        )
+        )  
 
         messages.success(request, f"Successfully bought {purchase_quantity} shares of {stock.name}.")
         return redirect('index')
@@ -325,6 +345,7 @@ def buy(request, id):
 @login_required
 def sell(request, id):
     if request.method == 'POST':
+        user=request.user
         quantity = int(request.POST.get('quantity', 0))
         stock = get_object_or_404(Stocks, id=id)
 
@@ -338,23 +359,36 @@ def sell(request, id):
                 user_stock.delete()
             else:
                 user_stock.save()
+            send_mail(
+            subject="Sell Confirmation",
+            message=f"You sold {quantity} shares of {stock.name}.",
+            from_email=None,
+            recipient_list=[user.email],
+            fail_silently=True)
             messages.success(request, f"📉 You sold {quantity} shares of {stock.name}.")
 
     return redirect('index')
 
 @login_required
-
 def index(request):
     user = request.user
-    user_stocks = UserStock.objects.filter(user=user).select_related('stock')
+    user_stocks = UserStock.objects.select_related('stock').filter(user=user)
+
+    total_invested = 0
+    current_value = 0
+
+    for us in user_stocks:
+        invested = us.buyPrice * us.buyQuantity
+        total_invested += invested
+        current_value += us.total_value  # uses @property from model
+
+    gains = ((current_value - total_invested) / total_invested) * 100 if total_invested else 0
 
     context = {
-        'user_stocks': user_stocks
+        'user_stocks': user_stocks,
+        'total_invested': total_invested,
+        'current_value': current_value,
+        'gains': gains
     }
 
     return render(request, 'index.html', context)
-
-#1.make a view to get all userStock for the particular user
-#2.make a template to display cards and pass the context from view to tmplate
-#3.email notification on registration , sell and buy
-

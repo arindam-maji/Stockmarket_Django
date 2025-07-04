@@ -1,0 +1,70 @@
+<form method="GET" action="{% url 'stocks' %}" class="search-wrapper">
+  <div class="input-group stylish-search">
+    <span class="input-group-text bg-transparent border-0">
+      <i class="bi bi-search"></i>
+    </span>
+    <input
+      type="text"
+      name="q"
+      class="form-control shadow-none stylish-input"
+      placeholder="Search stocks like Tesla, Apple..."
+      value="{{ request.GET.q }}"
+    />
+    <button class="btn stylish-button" type="submit">Search</button>
+  </div>
+</form>
+
+<!-- Custom CSS -->
+<style>
+  .search-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+  }
+
+  .stylish-search {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    max-width: 600px;
+    width: 100%;
+  }
+
+  .stylish-input {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .stylish-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .stylish-button {
+    background-color: #00c6ff;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    font-weight: 500;
+    border-radius: 0;
+    transition: background 0.3s ease;
+  }
+
+  .stylish-button:hover {
+    background: #0072ff;
+  }
+
+  .input-group-text {
+    color: white;
+    font-size: 18px;
+  }
+
+  body {
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    font-family: 'Segoe UI', sans-serif;
+  }
+</style>

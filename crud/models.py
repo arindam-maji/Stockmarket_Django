@@ -17,15 +17,22 @@ class Stocks(models.Model):
 
     def __str__(self):
         return  self.name
-class UserStock(models.Model) :
-    user =  models.ForeignKey(User ,  on_delete=models.CASCADE)
-    stock  = models.ForeignKey(Stocks,  on_delete= models.CASCADE)
-    buyPrice  =  models.FloatField()
-    buyQuantity =  models.IntegerField()
-    purchaseDate =  models.DateTimeField(auto_now_add=True)
+class UserStock(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    stock = models.ForeignKey(Stocks, on_delete=models.CASCADE)
+    buyPrice = models.FloatField()
+    buyQuantity = models.IntegerField()
+    purchaseDate = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return  self.stock.name + " " + str(self.user)
+        return f"{self.stock.name} - {self.user}"
+
+    @property
+    def total_value(self):
+        if self.stock and self.stock.curr_price and self.buyQuantity:
+            return self.buyQuantity * self.stock.curr_price
+        return 0
+
 
 
 # Create your models here.

@@ -1,13 +1,105 @@
 {% extends 'base.html' %}
+{% load static %}
 
+{% block content %}
+  {% include 'components/search.html' %}
 
-{% block content%}
-<div class ='wrapper'>
-    <div class  =  'card-container'>
-    {% for  i in data%}
-{% include 'components/card.html' with ticker=i.ticker name=i.name curr_price=i.curr_price id=i.id %}
-{% endfor %}
-</div>
-</div>
+  <!-- 🔴 Live Crypto Price Section -->
+  <div class="container text-center my-4">
+    <h4>💹 Live Crypto Price – BTC/USDT</h4>
+    <div id="cryptoData" class="fw-bold text-success">Connecting to Finnhub...</div>
+  </div>
 
+  <!-- Stock Cards -->
+  <div class="wrapper">
+    <div class="card-container">
+      {% for i in page_obj %}
+        {% include 'components/card.html' with ticker=i.ticker name=i.name curr_price=i.curr_price id=i.id %}
+      {% empty %}
+        <p>No stocks found.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Pagination Controls -->
+  {% if page_obj.has_other_pages %}
+    <nav aria-label="Stock pagination" class="mt-4 d-flex justify-content-center">
+      <ul class="pagination">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?q={{ request.GET.q }}&page={{ page_obj.previous_page_number }}">Previous</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+            <li class="page-item"><a class="page-link" href="?q={{ request.GET.q }}&page={{ num }}">{{ num }}</a></li>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?q={{ request.GET.q }}&page={{ page_obj.next_page_number }}">Next</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Next</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+{{ tickers|json_script:"tickersJson" }}
+
+<script>
+  const token = "d1jl69hr01qvg5gv7t90d1jl69hr01qvg5gv7t9g";
+  const socket = new WebSocket(`wss://ws.finnhub.io?token=${token}`);
+
+  const tickers = JSON.parse(document.getElementById('tickersJson').textContent);
+
+  socket.addEventListener('open', () => {
+    console.log("✅ WebSocket connected");
+    socket.send(JSON.stringify({ type: "subscribe", symbol: "BINANCE:BTCUSDT" }));
+    tickers.forEach(ticker => {
+      socket.send(JSON.stringify({ type: "subscribe", symbol: ticker }));
+    });
+  });
+
+  socket.addEventListener('message', (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === 'trade') {
+      data.data.forEach(trade => {
+        const symbol = trade.s;
+        const price = trade.p;
+        const element = document.getElementById(symbol);
+        if (element) {
+          element.innerText = `$ ${price.toFixed(2)}`;
+        }
+        if (symbol === "BINANCE:BTCUSDT") {
+          const cryptoEl = document.getElementById("cryptoData");
+          if (cryptoEl) {
+            cryptoEl.innerText = `Price: $${price.toFixed(2)} | Time: ${new Date(trade.t).toLocaleTimeString()}`;
+          }
+        }
+      });
+    }
+  });
+
+  socket.addEventListener('error', err => {
+    console.error("❌ WebSocket error", err);
+    document.getElementById("cryptoData").innerText = "WebSocket error.";
+  });
+
+  socket.addEventListener('close', () => {
+    console.warn("🔌 WebSocket closed");
+    document.getElementById("cryptoData").innerText = "Disconnected from Finnhub.";
+  });
+</script>
+<!-- Embedding JSON-safe tickers list -->
+{{ tickers|json_script:"tickersJson" }}
 {% endblock %}
