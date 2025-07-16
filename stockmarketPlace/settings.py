@@ -60,20 +60,26 @@ TEMPLATES = [
 WSGI_APPLICATION = 'stockmarketPlace.wsgi.application'
 
 # Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-import dj_database_url
-from django.urls import reverse
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+# import dj_database_url
+#from django.urls import reverse
 
 DATABASES = {
-    'default': dj_database_url.parse(
-        'postgresql://postgres:StockMarketSale@81@db.gktetvuzhxlfimwnjbli.supabase.co:5432/postgres'
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',  # or the DB name shown in Supabase
+        'USER': 'postgres',  # NOT always "postgres"
+        'PASSWORD': 'StockMarketPlace@81',
+        'HOST': 'db.gktetvuzhxlfimwnjbli.supabase.co',
+        'PORT': '5432',
+    }
 }
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
