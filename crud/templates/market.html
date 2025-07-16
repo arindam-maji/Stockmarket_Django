@@ -60,18 +60,21 @@
   const token = "d1jl69hr01qvg5gv7t90d1jl69hr01qvg5gv7t9g";
   const socket = new WebSocket(`wss://ws.finnhub.io?token=${token}`);
 
-  const tickers = JSON.parse(document.getElementById('tickersJson').textContent);
+  const tickers = ["AAPL","MSFT","GOOGL","GOOG","AMZN","META","NVDA","TSLA","PEP","INTC","CSCO","ADBE","CMCSA","AVGO","COST","TMUS","TXN","AMGN","QCOM","INTU","PYPL","BKNG","GILD","SBUX","MU","ADP","MDLZ","ISRG","ADI","MAR","LRCX","REGN","ATVI","ILMN","WDAY","SNPS","ASML","EBAY","ROST","CTAS","BIIB","MELI","ORLY","VRTX","DLTR","KHC","EXC","FAST","JD","CRWD"];
+
 
   socket.addEventListener('open', () => {
     console.log("✅ WebSocket connected");
     socket.send(JSON.stringify({ type: "subscribe", symbol: "BINANCE:BTCUSDT" }));
     tickers.forEach(ticker => {
       socket.send(JSON.stringify({ type: "subscribe", symbol: ticker }));
+      console.log("subscribed to" , ticker)
     });
   });
 
   socket.addEventListener('message', (event) => {
     const data = JSON.parse(event.data);
+    console.log(data)
     if (data.type === 'trade') {
       data.data.forEach(trade => {
         const symbol = trade.s;
@@ -94,6 +97,7 @@
     console.error("❌ WebSocket error", err);
     document.getElementById("cryptoData").innerText = "WebSocket error.";
   });
+
 
   socket.addEventListener('close', () => {
     console.warn("🔌 WebSocket closed");

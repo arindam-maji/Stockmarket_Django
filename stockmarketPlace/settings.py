@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'crud',
+    # 'django_cron',
 ]
 
 MIDDLEWARE = [
@@ -65,7 +66,14 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+import dj_database_url
+from django.urls import reverse
 
+DATABASES = {
+    'default': dj_database_url.parse(
+        'postgresql://postgres:StockMarketSale@81@db.gktetvuzhxlfimwnjbli.supabase.co:5432/postgres'
+    )
+}
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -100,3 +108,8 @@ EMAIL_HOST_PASSWORD = "rqje dfsr pzqs cswa" #app password
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 LOGIN_URL = '/login/'  # or whatever your login path is
+
+
+# CRON_CLASSES={
+#     "crud.cron.StockUpdateCronJob",#appname.cron.Stock....
+# }
