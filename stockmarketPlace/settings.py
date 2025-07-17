@@ -58,6 +58,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'stockmarketPlace.wsgi.application'
+ASGI_APPLICATION = 'stockmarketPlace.asgi.application'
 
 # Database
 # DATABASES = {
