@@ -30,7 +30,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',#
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -67,20 +67,14 @@ ASGI_APPLICATION = 'stockmarketPlace.asgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
-# import dj_database_url
-#from django.urls import reverse
+import dj_database_url
+from django.urls import reverse
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',  # or the DB name shown in Supabase
-        'USER': 'postgres',  # NOT always "postgres"
-        'PASSWORD': 'StockMarketPlace@81',
-        'HOST': 'db.gktetvuzhxlfimwnjbli.supabase.co',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.parse(
+        'postgresql://postgres.gktetvuzhxlfimwnjbli:StockMarketPlace@81@aws-0-ap-south-1.pooler.supabase.com:5432/postgres',
+    )
 }
-
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
