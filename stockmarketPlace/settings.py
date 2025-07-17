@@ -9,10 +9,10 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY", 'django-insecure-dev-key')  # ✅ Use env var on Render
+SECRET_KEY = "django-insecure-dev-key"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('RENDER') is None  # ✅ False on Render, True locally
+DEBUG = True 
 
 ALLOWED_HOSTS = ['*']
 
@@ -98,7 +98,7 @@ USE_TZ = True
 # ✅ Static files for production
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ✅ Media files (user uploads)
 MEDIA_URL = '/media/'
