@@ -13,3 +13,4 @@ urllib3==2.5.0
 whitenoise==6.9.0
 psycopg2-binary
 dj_database_url
+uvicorn
